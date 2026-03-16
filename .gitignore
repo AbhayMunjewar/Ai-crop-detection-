@@ -1,0 +1,14 @@
+# Python environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Large datasets and archives
+archive/
+archive.zip
+
+# Machine Learning Models
+*.h5
+*.tflite

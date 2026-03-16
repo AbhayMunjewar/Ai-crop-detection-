@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../theme/app_colors.dart';
+import '../services/scan_history_service.dart';
 import '../widgets/custom_bottom_nav.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -39,7 +40,7 @@ class _UploadScanScreenState extends State<UploadScanScreen> {
     });
 
     // Send to your computer's IP running the Flask server
-    final String apiUrl = "http://192.168.1.75:5000/predict";
+    final String apiUrl = "http://192.168.17.115:5000/predict";
 
     try {
       var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
@@ -52,6 +53,12 @@ class _UploadScanScreenState extends State<UploadScanScreen> {
         
         debugPrint("Prediction: ${jsonResult['disease']}");
         debugPrint("Confidence: ${jsonResult['confidence']}");
+        
+        ScanHistoryService.addScan(
+          disease: jsonResult['disease'],
+          confidence: jsonResult['confidence'],
+          imagePath: _selectedImage!.path,
+        );
         
         // Navigate to result screen and pass the result mapping
         if (mounted) {

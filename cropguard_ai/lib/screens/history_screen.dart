@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import '../theme/app_colors.dart';
+import '../services/scan_history_service.dart';
 import '../widgets/custom_bottom_nav.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -14,32 +16,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, dynamic>> _scans = [
-    {
-      'title': 'Tomato Late Blight',
-      'date': 'OCT 24 • 09:45 AM',
-      'confidence': 0.98,
-      'statusIcon': Icons.error_outline,
-      'statusColor': AppColors.statusDanger,
-      'category': 'DISEASED',
-    },
-    {
-      'title': 'Healthy Corn',
-      'date': 'OCT 22 • 02:15 PM',
-      'confidence': 0.99,
-      'statusIcon': Icons.check_circle_outline,
-      'statusColor': AppColors.statusSafe,
-      'category': 'HEALTHY',
-    },
-    {
-      'title': 'Powdery Mildew',
-      'date': 'OCT 19 • 11:30 AM',
-      'confidence': 0.85,
-      'statusIcon': Icons.warning_amber_rounded,
-      'statusColor': AppColors.statusWarning,
-      'category': 'RISK',
-    },
-  ];
+  List<Map<String, dynamic>> get _scans => ScanHistoryService.scans;
 
   List<Map<String, dynamic>> get _filteredScans {
     List<Map<String, dynamic>> filtered = _scans;
@@ -181,6 +158,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 confidence: scan['confidence'] as double,
                 statusIcon: scan['statusIcon'] as IconData,
                 statusColor: scan['statusColor'] as Color,
+                imagePath: scan['image_path'] as String?,
+                fullDiseaseName: scan['fullDiseaseName'] ?? scan['title'],
               ),
             )),
             
@@ -256,6 +235,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     required double confidence,
     required IconData statusIcon,
     required Color statusColor,
+    String? imagePath,
+    required String fullDiseaseName,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
@@ -283,7 +264,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     colors: [Color(0xFF2E4C33), Color(0xFF142416)],
                   ),
                 ),
-                child: const Center(child: Icon(Icons.eco, color: Colors.white30)),
+                clipBehavior: Clip.hardEdge,
+                child: imagePath != null
+                    ? Image.file(
+                        File(imagePath),
+                        fit: BoxFit.cover,
+                      )
+                    : const Center(child: Icon(Icons.eco, color: Colors.white30)),
               ),
               const SizedBox(width: 16),
               // Scan Info
@@ -370,7 +357,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/result');
+                    Navigator.pushNamed(
+                      context,
+                      '/result',
+                      arguments: {
+                        'image_path': imagePath,
+                        'disease': fullDiseaseName,
+                        'confidence': confidence,
+                      },
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isDark ? Colors.white : theme.primaryColor,

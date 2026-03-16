@@ -1,0 +1,50 @@
+                   A: android:name(0x01010003)="androidx.window.extensions" (Raw: "androidx.window.extensions")
+                   A: android:required(0x0101028e)=(type 0x12)0x0
+                 E: uses-library (line=103)
+                   A: android:name(0x01010003)="androidx.window.sidecar" (Raw: "androidx.window.sidecar")
+                   A: android:required(0x0101028e)=(type 0x12)0x0
+                 E: provider (line=107)
+                   A: android:name(0x01010003)="androidx.startup.InitializationProvider" (Raw: "androidx.startup.InitializationProvider")
+                   A: android:exported(0x01010010)=(type 0x12)0x0
+                   A: android:authorities(0x01010018)="com.example.cropguard_ai.androidx-startup" (Raw: "com.example.cropguard_ai.androidx-startup")
+                   E: meta-data (line=111)
+                     A: android:name(0x01010003)="androidx.lifecycle.ProcessLifecycleInitializer" (Raw: "androidx.lifecycle.ProcessLifecycleInitializer")
+                     A: android:value(0x01010024)="androidx.startup" (Raw: "androidx.startup")
+                   E: meta-data (line=114)
+                     A: android:name(0x01010003)="androidx.profileinstaller.ProfileInstallerInitializer" (Raw: "androidx.profileinstaller.ProfileInstallerInitializer")
+                     A: android:value(0x01010024)="androidx.startup" (Raw: "androidx.startup")
+                 E: receiver (line=119)
+                   A: android:name(0x01010003)="androidx.profileinstaller.ProfileInstallReceiver" (Raw: "androidx.profileinstaller.ProfileInstallReceiver")
+                   A: android:permission(0x01010006)="android.permission.DUMP" (Raw: "android.permission.DUMP")
+                   A: android:enabled(0x0101000e)=(type 0x12)0xffffffff
+                   A: android:exported(0x01010010)=(type 0x12)0xffffffff
+                   A: android:directBootAware(0x01010505)=(type 0x12)0x0
+                   E: intent-filter (line=125)
+                     E: action (line=126)
+                       A: android:name(0x01010003)="androidx.profileinstaller.action.INSTALL_PROFILE" (Raw: "androidx.profileinstaller.action.INSTALL_PROFILE")
+                   E: intent-filter (line=128)
+                     E: action (line=129)
+                       A: android:name(0x01010003)="androidx.profileinstaller.action.SKIP_FILE" (Raw: "androidx.profileinstaller.action.SKIP_FILE")
+                   E: intent-filter (line=131)
+                     E: action (line=132)
+                       A: android:name(0x01010003)="androidx.profileinstaller.action.SAVE_PROFILE" (Raw: "androidx.profileinstaller.action.SAVE_PROFILE")
+                   E: intent-filter (line=134)
+                     E: action (line=135)
+                       A: android:name(0x01010003)="androidx.profileinstaller.action.BENCHMARK_OPERATION" (Raw: "androidx.profileinstaller.action.BENCHMARK_OPERATION")
+[   +4 ms] Stopping app 'app-debug.apk' on vivo 1819.
+[        ] executing: C:\Users\Abhay\AppData\Local\Android\sdk\platform-tools\adb.exe -s 456SI7HQ55JFMNYH shell am force-stop com.example.cropguard_ai
+[ +161 ms] Installing APK.
+[        ] Installing build\app\outputs\flutter-apk\app-debug.apk...
+[        ] executing: C:\Users\Abhay\AppData\Local\Android\sdk\platform-tools\adb.exe -s 456SI7HQ55JFMNYH install -t -r D:\crop detection\cropguard_ai\build\app\outputs\flutter-apk\app-debug.apk
+[+6135 ms] Performing Streamed Install
+           Success
+[        ] Installing build\app\outputs\flutter-apk\app-debug.apk... (completed in 6.1s)
+[        ] executing: C:\Users\Abhay\AppData\Local\Android\sdk\platform-tools\adb.exe -s 456SI7HQ55JFMNYH shell echo -n 3f82d0285b5c19b097f8b679dc9575e90cebcde1 > /data/local/tmp/sky.com.example.cropguard_ai.sha1
+[ +171 ms] executing: C:\Users\Abhay\AppData\Local\Android\sdk\platform-tools\adb.exe -s 456SI7HQ55JFMNYH shell -x logcat -v time -t 1
+[ +341 ms] executing: C:\Users\Abhay\AppData\Local\Android\sdk\platform-tools\adb.exe -s 456SI7HQ55JFMNYH shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x20000000 --ez enable-dart-profiling true --ez enable-checked-mode true --ez verify-entry-points true com.example.cropguard_ai/com.example.cropguard_ai.MainActivity
+[+1760 ms] Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x20000000 cmp=com.example.cropguard_ai/.MainActivity (has extras) }
+[        ] Waiting for VM Service port to be available...
+[   +2 ms] "flutter run" took 18,042ms.
+[        ] Running 3 shutdown hooks
+[   +5 ms] Shutdown hooks complete
+[ +104 ms] exiting with code 1

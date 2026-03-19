@@ -10,6 +10,7 @@ class ScanHistoryService {
     required String disease,
     required double confidence,
     required String imagePath,
+    Map<String, dynamic>? geminiData,
   }) {
     // Format title
     String title = disease.split('___').last.replaceAll('_', ' ');
@@ -47,6 +48,7 @@ class ScanHistoryService {
       'statusColor': statusColor,
       'category': category,
       'image_path': imagePath,
+      'gemini_data': geminiData,
     });
   }
 

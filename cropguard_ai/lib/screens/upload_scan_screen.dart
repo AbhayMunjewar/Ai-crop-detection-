@@ -3,9 +3,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../theme/app_colors.dart';
 import '../services/scan_history_service.dart';
+import '../services/api_service.dart';
 import '../widgets/custom_bottom_nav.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 class UploadScanScreen extends StatefulWidget {
   const UploadScanScreen({super.key});
 
@@ -39,51 +38,48 @@ class _UploadScanScreenState extends State<UploadScanScreen> {
       _isAnalyzing = true;
     });
 
-    // Send to your computer's IP running the Flask server
-    final String apiUrl = "http://192.168.17.115:5000/predict";
-
     try {
-      var request = http.MultipartRequest('POST', Uri.parse(apiUrl));
-      request.files.add(await http.MultipartFile.fromPath('image', _selectedImage!.path));
+      final imageBytes = await _selectedImage!.readAsBytes();
+      final result = await ApiService.predictDisease(
+        imageBytes,
+        _selectedImage!.path.split('/').last,
+      );
 
-      var response = await request.send();
-      if (response.statusCode == 200) {
-        var responseData = await response.stream.bytesToString();
-        var jsonResult = jsonDecode(responseData);
-        
-        debugPrint("Prediction: ${jsonResult['disease']}");
-        debugPrint("Confidence: ${jsonResult['confidence']}");
-        
+      if (!mounted) return;
+
+      if (result['success']) {
         ScanHistoryService.addScan(
-          disease: jsonResult['disease'],
-          confidence: jsonResult['confidence'],
+          disease: result['disease'],
+          confidence: result['confidence'],
           imagePath: _selectedImage!.path,
+          geminiData: result['gemini_data'],
         );
-        
-        // Navigate to result screen and pass the result mapping
-        if (mounted) {
-           Navigator.pushReplacementNamed(
-            context, 
-            '/result', 
-            arguments: {
-              'image_path': _selectedImage!.path,
-              'disease': jsonResult['disease'],
-              'confidence': jsonResult['confidence'],
-            }
-          );
-        }
+
+        Navigator.pushReplacementNamed(
+          context,
+          '/result',
+          arguments: {
+            'image_path': _selectedImage!.path,
+            'disease': result['disease'],
+            'confidence': result['confidence'],
+            'gemini_data': result['gemini_data'],
+          },
+        );
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to get prediction from server")),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['error'] ?? 'Analysis failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint("Error connecting to Python backend: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Could not connect to the detection server. Is it running?")),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {

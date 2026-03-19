@@ -160,6 +160,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 statusColor: scan['statusColor'] as Color,
                 imagePath: scan['image_path'] as String?,
                 fullDiseaseName: scan['fullDiseaseName'] ?? scan['title'],
+                geminiData: scan['gemini_data'],
               ),
             )),
             
@@ -237,6 +238,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     required Color statusColor,
     String? imagePath,
     required String fullDiseaseName,
+    dynamic geminiData,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
@@ -364,6 +366,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         'image_path': imagePath,
                         'disease': fullDiseaseName,
                         'confidence': confidence,
+                        'gemini_data': geminiData,
                       },
                     );
                   },

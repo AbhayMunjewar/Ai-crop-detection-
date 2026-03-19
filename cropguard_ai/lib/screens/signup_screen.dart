@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../models/user_profile.dart';
+import '../services/auth_service.dart';
+import 'otp_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -17,6 +19,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _cropController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -29,16 +33,113 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  void _handleSignup() {
-    // Save to singleton
-    final profile = UserProfile();
-    if (_nameController.text.isNotEmpty) profile.name = _nameController.text;
-    if (_emailController.text.isNotEmpty) profile.email = _emailController.text;
-    if (_phoneController.text.isNotEmpty) profile.phone = _phoneController.text;
-    if (_locationController.text.isNotEmpty) profile.location = _locationController.text;
-    if (_cropController.text.isNotEmpty) profile.crop = _cropController.text;
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email);
+  }
 
-    Navigator.pushReplacementNamed(context, '/scan');
+  bool _validateForm() {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (name.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your full name';
+      });
+      return false;
+    }
+
+    if (email.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your email';
+      });
+      return false;
+    }
+
+    if (!_isValidEmail(email)) {
+      setState(() {
+        _errorMessage = 'Please enter a valid email address';
+      });
+      return false;
+    }
+
+    if (password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter a password';
+      });
+      return false;
+    }
+
+    if (password.length < 6) {
+      setState(() {
+        _errorMessage = 'Password must be at least 6 characters';
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> _handleSignup() async {
+    setState(() {
+      _errorMessage = null;
+    });
+
+    if (!_validateForm()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await AuthService.signup(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      fullName: _nameController.text.trim(),
+      phone: _phoneController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    if (result['success']) {
+      // Save to singleton for display purposes
+      final profile = UserProfile();
+      profile.name = _nameController.text.trim();
+      profile.email = _emailController.text.trim();
+      if (_phoneController.text.isNotEmpty) {
+        profile.phone = _phoneController.text.trim();
+      }
+      if (_locationController.text.isNotEmpty) {
+        profile.location = _locationController.text.trim();
+      }
+      if (_cropController.text.isNotEmpty) {
+        profile.crop = _cropController.text.trim();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created! Please verify your email.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Navigate to OTP screen with dev OTP if available
+      final devOtp = result['otp'] as String?;  // Development mode
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => OTPScreen(
+            email: _emailController.text.trim(),
+            devOtp: devOtp,
+          ),
+        ),
+      );
+    } else {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = result['error'] ?? 'Signup failed. Please try again.';
+      });
+    }
   }
 
   @override
@@ -76,15 +177,42 @@ class _SignupScreenState extends State<SignupScreen> {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
+
+                // Error Message
+                if (_errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      border: Border.all(color: Colors.red[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(color: Colors.red[700]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
                 
                 // Name Field
                 TextField(
                   controller: _nameController,
                   textCapitalization: TextCapitalization.words,
                   style: const TextStyle(color: Colors.white),
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
-                    labelText: 'Full Name',
+                    labelText: 'Full Name *',
                     labelStyle: TextStyle(color: AppColors.textMuted),
                     filled: true,
                     fillColor: AppColors.cardBackground,
@@ -106,8 +234,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(color: Colors.white),
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'Email *',
                     labelStyle: TextStyle(color: AppColors.textMuted),
                     filled: true,
                     fillColor: AppColors.cardBackground,
@@ -129,6 +258,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(color: Colors.white),
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
                     labelText: 'Phone',
                     labelStyle: TextStyle(color: AppColors.textMuted),
@@ -152,6 +282,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _locationController,
                   textCapitalization: TextCapitalization.words,
                   style: const TextStyle(color: Colors.white),
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
                     labelText: 'Location',
                     labelStyle: TextStyle(color: AppColors.textMuted),
@@ -175,6 +306,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _cropController,
                   textCapitalization: TextCapitalization.words,
                   style: const TextStyle(color: Colors.white),
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
                     labelText: 'Primary Crop',
                     labelStyle: TextStyle(color: AppColors.textMuted),
@@ -198,8 +330,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   style: const TextStyle(color: Colors.white),
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: 'Password *',
                     labelStyle: TextStyle(color: AppColors.textMuted),
                     filled: true,
                     fillColor: AppColors.cardBackground,
@@ -232,8 +365,17 @@ class _SignupScreenState extends State<SignupScreen> {
                   width: double.infinity,
                   height: 60,
                   child: ElevatedButton(
-                    onPressed: _handleSignup,
-                    child: const Text('CREATE ACCOUNT'),
+                    onPressed: _isLoading ? null : _handleSignup,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text('CREATE ACCOUNT'),
                   ),
                 ),
                 
@@ -248,9 +390,11 @@ class _SignupScreenState extends State<SignupScreen> {
                       style: TextStyle(color: AppColors.textMuted),
                     ),
                     TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/login');
-                      },
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              Navigator.pushReplacementNamed(context, '/login');
+                            },
                       child: Text(
                         'Sign In',
                         style: TextStyle(

@@ -12,6 +12,7 @@ class AnalysisResultScreen extends StatelessWidget {
     final String? imagePath = args?['image_path'];
     final String diseaseName = args?['disease'] ?? 'Unknown Disease';
     final double confidence = args?['confidence'] ?? 0.0;
+    final Map<String, dynamic>? geminiData = args?['gemini_data'];
     
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
@@ -228,29 +229,48 @@ class AnalysisResultScreen extends StatelessWidget {
             const SizedBox(height: 16),
             
             // Countermeasure List
-            _buildCountermeasureCard(
-              context,
-              icon: Icons.delete_outline,
-              iconColor: AppColors.primaryGreen, // The design shows green icon bg with dark icon, actually first is red icon bg maybe? Wait, Image 4 shows all three icons have green background and dark green/black icon. Ah wait, Bio-Isolation icon seems slightly different but let's use green.
-              title: 'Bio-Isolation',
-              description: 'Immediate removal of infected tissues. Neutralize via thermal destruction to prevent spore drift.',
-            ),
-            const SizedBox(height: 12),
-            _buildCountermeasureCard(
-              context,
-              icon: Icons.science_outlined, // Chemical flask
-              iconColor: AppColors.primaryGreen,
-              title: 'Chemical Treatment',
-              description: 'Apply fungicides such as copper, mancozeb, or myclobutanil.',
-            ),
-            const SizedBox(height: 12),
-            _buildCountermeasureCard(
-              context,
-              icon: Icons.air,
-              iconColor: AppColors.primaryGreen,
-              title: 'Atmospheric Control',
-              description: 'Optimize micro-climate dynamics. Enhance ventilation and eliminate moisture accumulation on foliage.',
-            ),
+            // Gemini Countermeasure List
+            if (geminiData != null) ...[
+              _buildCountermeasureCard(
+                context,
+                icon: Icons.coronavirus_outlined,
+                iconColor: AppColors.primaryGreen,
+                title: 'Cause',
+                description: geminiData['cause'] ?? 'Unknown cause',
+              ),
+              const SizedBox(height: 12),
+              _buildCountermeasureCard(
+                context,
+                icon: Icons.shield_outlined,
+                iconColor: AppColors.primaryGreen,
+                title: 'Prevention',
+                description: geminiData['prevention'] ?? 'Unknown prevention',
+              ),
+              const SizedBox(height: 12),
+              _buildCountermeasureCard(
+                context,
+                icon: Icons.medical_services_outlined,
+                iconColor: AppColors.primaryGreen,
+                title: 'Treatment',
+                description: geminiData['treatment'] ?? 'Unknown treatment',
+              ),
+              const SizedBox(height: 12),
+              _buildCountermeasureCard(
+                context,
+                icon: Icons.agriculture_outlined,
+                iconColor: AppColors.primaryGreen,
+                title: 'Farming Advice',
+                description: geminiData['farming_advice'] ?? 'Unknown advice',
+              ),
+            ] else ...[
+              _buildCountermeasureCard(
+                context,
+                icon: Icons.info_outline,
+                iconColor: AppColors.primaryGreen,
+                title: 'No Data',
+                description: 'Detailed countermeasures could not be loaded.',
+              ),
+            ],
             
             const SizedBox(height: 32),
             

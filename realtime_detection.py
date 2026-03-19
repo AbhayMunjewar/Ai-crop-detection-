@@ -1,8 +1,12 @@
 import cv2
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+try:
+    from tensorflow.keras.models import load_model
+    from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+except ImportError:
+    from keras.models import load_model
+    from keras.applications.mobilenet_v2 import preprocess_input
 
 # Load trained model
 model = load_model("plant_disease_mobilenetv2.h5")
